@@ -498,7 +498,7 @@ Instead of loading every microstructure into RAM, the dataset stores an index:
 
 # Future Plan
 
-Once the GAN generates new 3D microstructures, the generated microstructures will be passed to CH/FEM-based simulations to evaluate their effective physical properties.
+Once the GAN generates new 3D microstructures, the generated microstructures will be passed to https://github.com/cortezpedro/chfem CH/FEM-based simulations to evaluate their effective physical properties.
 
 1. Thermal Conductivity
 
