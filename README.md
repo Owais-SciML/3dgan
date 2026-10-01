@@ -492,12 +492,11 @@ Each HDF5 key corresponds to one 3D volume.
 
 Instead of loading every microstructure into RAM, the dataset stores an index:
 
-```text
 (file path, HDF5 key)
 
 
 
-Future Plan
+# Future Plan
 
 Once the GAN generates new 3D microstructures, the generated microstructures will be passed to CH/FEM-based simulations to evaluate their effective physical properties.
 
