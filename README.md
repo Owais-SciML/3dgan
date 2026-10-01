@@ -6,16 +6,16 @@ This project implements a 3D Generative Adversarial Network (GAN) for generating
 
 The input microstructures are represented as 3D binary arrays:
 
-\[
-X \in \{0,1\}^{128\times128\times64}
-\]
+$$
+X \in \{0,1\}^{128 \times 128 \times 64}
+$$
 
 where each voxel represents one of two phases.
 
 The project uses a 3D convolutional GAN consisting of:
 
-- A 3D Generator
-- A 3D Discriminator
+- 3D Generator
+- 3D Discriminator
 - 3D transposed convolutions
 - 3D convolutions
 - Batch normalization
@@ -26,61 +26,58 @@ The project uses a 3D convolutional GAN consisting of:
 - Latent random noise
 - One-hot conditioning
 
-The generated output is converted into a binary 3D microstructure and saved as an HDF5 file and NumPy array.
-
 ---
 
 # 1. Microstructure Representation
 
 A microstructure describes the spatial arrangement of different material phases.
 
-For a two-phase material, each voxel can be represented as
+For a two-phase material, each voxel can be represented as:
 
-\[
-X_{ijk}\in\{0,1\}
-\]
+$$
+X_{ijk} \in \{0,1\}
+$$
 
-where
+where:
 
-- \(0\) represents phase 0
-- \(1\) represents phase 1
+- $0$ represents phase 0
+- $1$ represents phase 1
 
-The complete microstructure is therefore
+The complete microstructure is therefore:
 
-\[
-X\in\{0,1\}^{N_x\times N_y\times N_z}
-\]
+$$
+X \in \{0,1\}^{N_x \times N_y \times N_z}
+$$
 
 For this project:
 
-\[
-N_x=128,\qquad
-N_y=128,\qquad
-N_z=64
-\]
+$$
+N_x = 128,\qquad
+N_y = 128,\qquad
+N_z = 64
+$$
 
-Therefore each microstructure contains
+Therefore, each microstructure contains:
 
-\[
-128\times128\times64=1,048,576
-\]
+$$
+128 \times 128 \times 64 = 1,048,576
+$$
 
 voxels.
 
 The microstructure contains spatial information, not just the total amount of each phase.
 
-For example, two structures can have the same volume fraction but completely different:
+Two structures can have the same volume fraction but completely different:
 
-- phase connectivity
-- pore structure
-- interface area
-- characteristic length scale
-- tortuosity
-- anisotropy
-- transport properties
-- mechanical response
+- Phase connectivity
+- Interface area
+- Characteristic length scale
+- Tortuosity
+- Anisotropy
+- Transport properties
+- Mechanical response
 
-Therefore the spatial distribution of the voxels is important.
+Therefore, the spatial distribution of the voxels is important.
 
 ---
 
@@ -88,53 +85,56 @@ Therefore the spatial distribution of the voxels is important.
 
 A material microstructure affects its macroscopic physical properties.
 
-For example, consider a two-phase material with thermal conductivity
+For example, consider a two-phase material with thermal conductivities:
 
-\[
+$$
 k_0
-\]
+$$
 
-for phase 0 and
+and
 
-\[
+$$
 k_1
-\]
+$$
 
-for phase 1.
+for phase 0 and phase 1 respectively.
 
-The effective thermal conductivity of the complete material is not generally equal to a simple volume-weighted average.
+The effective thermal conductivity is not generally just a simple volume-weighted average.
 
-Instead,
+Instead:
 
-\[
+$$
 k_{\mathrm{eff}}
 =
 f(k_0,k_1,\text{microstructure})
-\]
+$$
 
 where the microstructure controls the paths through which heat can travel.
 
-Similarly, the effective elastic properties can be written conceptually as
+Similarly, the effective elastic properties can be represented conceptually as:
 
-\[
+$$
 E_{\mathrm{eff}}
 =
 f(E_0,E_1,\text{microstructure})
-\]
+$$
 
-and fluid transport properties can depend on
+Fluid transport properties can similarly depend on:
 
-\[
+$$
 K_{\mathrm{eff}}
 =
 f(\mu,\text{microstructure})
-\]
+$$
 
-where \(K_{\mathrm{eff}}\) is permeability and \(\mu\) is fluid viscosity.
+where:
 
-Therefore the objective of microstructure generation is not simply to generate random binary images.
+- $K_{\mathrm{eff}}$ is effective permeability
+- $\mu$ is fluid viscosity
 
-The generated structure should reproduce the important statistical and physical characteristics of real microstructures.
+Therefore, the objective of microstructure generation is not simply to generate random binary images.
+
+The generated structure should reproduce important statistical and physical characteristics of real microstructures.
 
 ---
 
@@ -142,59 +142,59 @@ The generated structure should reproduce the important statistical and physical 
 
 Computational materials research often requires a large number of microstructures.
 
-A conventional workflow can be:
+A conventional workflow is:
 
-\[
+$$
 \text{Microstructure}
 \rightarrow
 \text{Physical Simulation}
 \rightarrow
 \text{Material Properties}
-\]
+$$
 
 For example:
 
-\[
+$$
 \text{Microstructure}
 \rightarrow
 \text{Finite Element Analysis}
 \rightarrow
 E_{\mathrm{eff}}
-\]
+$$
 
-or
+or:
 
-\[
+$$
 \text{Microstructure}
 \rightarrow
 \text{Heat Transfer Simulation}
 \rightarrow
 k_{\mathrm{eff}}
-\]
+$$
 
-or
+or:
 
-\[
+$$
 \text{Microstructure}
 \rightarrow
 \text{Fluid Flow Simulation}
 \rightarrow
 K_{\mathrm{eff}}
-\]
+$$
 
-These simulations can be computationally expensive when thousands or millions of candidate microstructures are required.
+These simulations can become computationally expensive when thousands or millions of candidate microstructures are required.
 
 A generative machine learning model provides another approach:
 
-\[
+$$
 z
 \rightarrow
 G(z)
 \rightarrow
 \text{Microstructure}
-\]
+$$
 
-Once trained, generating a new structure can be much cheaper than running a complete physical simulation or a detailed microstructure-generation algorithm.
+Once trained, generating a new structure can be much cheaper than running a complete physical simulation or detailed microstructure-generation algorithm.
 
 ---
 
@@ -204,29 +204,27 @@ Traditional computational models attempt to explicitly describe the physical mec
 
 Deep learning instead learns a mapping from examples.
 
-Given a training dataset
+Given a training dataset:
 
-\[
+$$
 \mathcal{D}
 =
 \{X_1,X_2,\ldots,X_N\}
-\]
+$$
 
-the neural network attempts to learn the underlying distribution
+the neural network attempts to learn the underlying data distribution:
 
-\[
+$$
 p_{\mathrm{data}}(X)
-\]
+$$
 
-without explicitly writing an analytical equation for the complete microstructure distribution.
+The generator attempts to produce samples from an approximation:
 
-The generator attempts to produce samples from an approximation
-
-\[
+$$
 p_G(X)
 \approx
 p_{\mathrm{data}}(X)
-\]
+$$
 
 This is useful when the microstructure is complicated and difficult to describe analytically.
 
@@ -240,29 +238,29 @@ A phase-field model and a GAN solve different problems.
 
 A phase-field model describes the evolution of a physical system using continuous fields.
 
-A simplified phase-field equation can have the form
+A simplified phase-field equation can be written as:
 
-\[
+$$
 \frac{\partial \phi}{\partial t}
 =
 -M
-\frac{\delta F}{\delta\phi}
-\]
+\frac{\delta F}{\delta \phi}
+$$
 
-where
+where:
 
-- \(\phi\) is an order parameter
-- \(M\) is mobility
-- \(F\) is a free-energy functional
+- $\phi$ is an order parameter
+- $M$ is mobility
+- $F$ is a free-energy functional
 
-The phase-field method can model physical processes such as:
+Phase-field methods can model physical processes such as:
 
-- phase separation
-- grain growth
-- solidification
-- precipitation
-- coarsening
-- interface evolution
+- Phase separation
+- Grain growth
+- Solidification
+- Precipitation
+- Coarsening
+- Interface evolution
 
 The resulting microstructure is generated through a physical evolution model.
 
@@ -274,69 +272,62 @@ Instead, it learns the statistical distribution of structures from existing exam
 
 Therefore:
 
-Phase field:
+### Phase Field
 
-\[
+$$
 \text{Physics}
 \rightarrow
 \text{Evolution}
 \rightarrow
 \text{Microstructure}
-\]
+$$
 
-GAN:
+### GAN
 
-\[
+$$
 \text{Existing Microstructures}
 \rightarrow
 \text{Learning}
 \rightarrow
 \text{New Microstructures}
-\]
+$$
 
-A phase-field model is therefore more appropriate when the objective is to model the physical formation or evolution of a microstructure.
+A phase-field model is appropriate when the objective is to model the physical formation or evolution of a microstructure.
 
 A GAN is useful when the objective is to rapidly generate new structures that resemble an existing population of microstructures.
+
+These approaches are therefore complementary rather than direct replacements for each other.
 
 ---
 
 # 6. GAN Does Not Replace Physics
 
-The GAN in this project does not automatically guarantee that a generated microstructure is physically valid.
-
-This distinction is important.
+The GAN does not automatically guarantee that a generated microstructure is physically valid.
 
 The GAN learns the distribution of the training data:
 
-\[
-p_G(X)\approx p_{\mathrm{data}}(X)
-\]
+$$
+p_G(X)
+\approx
+p_{\mathrm{data}}(X)
+$$
 
-It does not inherently know:
+It does not inherently know physical properties such as:
 
-\[
-E
-\]
-
-\[
-k
-\]
-
-\[
-K
-\]
-
-\[
+$$
+E,\qquad
+k,\qquad
+K,\qquad
 \sigma_y
-\]
+$$
 
-or any other physical property.
+or other material properties.
 
-Therefore, a generated structure should subsequently be evaluated using physics-based methods.
+Therefore, generated structures should subsequently be evaluated using physics-based methods.
 
-For example:
+The complete workflow can be:
 
-\[
+$$
 \boxed{
 \text{GAN}
 \rightarrow
@@ -346,511 +337,405 @@ For example:
 \rightarrow
 \text{Effective Properties}
 }
-\]
+$$
 
-This creates a useful combination of machine learning and computational physics.
-
----
-
-# 7. Computational Physics Alternative
-
-Another approach is to generate structures using computational models and then evaluate them.
-
-Examples include:
-
-- Monte Carlo methods
-- Cellular automata
-- Phase-field models
-- Molecular dynamics
-- Finite element methods
-- Lattice-based methods
-- Direct numerical simulation
-
-These methods can provide physical interpretability but may require substantial computational resources depending on the problem.
-
-Deep learning provides a data-driven alternative when a sufficiently large and representative dataset is available.
-
-The choice depends on the objective.
-
-| Method | Main purpose |
-|---|---|
-| Phase field | Simulate physical microstructure evolution |
-| Monte Carlo | Statistical/thermodynamic sampling |
-| FEM | Solve mechanical/thermal physical problems |
-| CFD | Solve fluid-flow problems |
-| Molecular dynamics | Atomistic-scale simulation |
-| GAN | Learn and generate a distribution of structures |
-
-These methods are complementary rather than direct substitutes.
+This combines machine learning with computational physics.
 
 ---
 
-# 8. GAN Architecture
+# 7. GAN Architecture
 
-The model consists of two neural networks.
+The model consists of two neural networks:
 
-## Generator
+1. Generator
+2. Discriminator
 
-The generator creates a microstructure.
+The generator creates a microstructure:
 
-\[
-G(z,c)=X_{\mathrm{fake}}
-\]
+$$
+G(z,c)
+=
+X_{\mathrm{fake}}
+$$
 
-where
+where:
 
-- \(z\) is a random latent vector
-- \(c\) is the condition
-- \(X_{\mathrm{fake}}\) is the generated microstructure
+- $z$ is a random latent vector
+- $c$ is the condition
+- $X_{\mathrm{fake}}$ is the generated microstructure
 
-The latent vector contains random information used to generate different structures.
-
-In this implementation:
-
-\[
-z\in\mathbb{R}^{128}
-\]
-
-The condition is represented using a one-hot vector:
-
-\[
-c\in\mathbb{R}^{2}
-\]
-
-Therefore the generator input is
-
-\[
-[z,c]\in\mathbb{R}^{130}
-\]
+The discriminator attempts to distinguish real and generated microstructures.
 
 ---
 
-# 9. Generator Architecture
+# 8. Generator
 
-The generator starts with a fully connected layer.
+The generator receives:
 
-\[
-130
+$$
+z \in \mathbb{R}^{128}
+$$
+
+and a condition:
+
+$$
+c \in \mathbb{R}^{2}
+$$
+
+The combined input is:
+
+$$
+[z,c] \in \mathbb{R}^{130}
+$$
+
+The first fully connected layer maps this representation to:
+
+$$
+512 \times 4 \times 4 \times 2
+$$
+
+The tensor is then reshaped into:
+
+$$
+512 \times 4 \times 4 \times 2
+$$
+
+3D transposed convolutions progressively increase the spatial resolution:
+
+$$
+4 \times 4 \times 2
 \rightarrow
-512\times4\times4\times2
-\]
+8 \times 8 \times 4
+$$
 
-The resulting tensor is reshaped into
-
-\[
-512\times4\times4\times2
-\]
-
-The spatial resolution is then progressively increased using 3D transposed convolutions.
-
-\[
-4\times4\times2
+$$
+8 \times 8 \times 4
 \rightarrow
-8\times8\times4
-\]
+16 \times 16 \times 8
+$$
 
-\[
-8\times8\times4
+$$
+16 \times 16 \times 8
 \rightarrow
-16\times16\times8
-\]
+32 \times 32 \times 16
+$$
 
-\[
-16\times16\times8
+$$
+32 \times 32 \times 16
 \rightarrow
-32\times32\times16
-\]
+64 \times 64 \times 32
+$$
 
-\[
-32\times32\times16
+$$
+64 \times 64 \times 32
 \rightarrow
-64\times64\times32
-\]
+128 \times 128 \times 64
+$$
 
-\[
-64\times64\times32
-\rightarrow
-128\times128\times64
-\]
+The final output is:
 
-The final output is
-
-\[
+$$
 X_{\mathrm{fake}}
 \in
-[-1,1]^{128\times128\times64}
-\]
+[-1,1]^{128 \times 128 \times 64}
+$$
 
 because the final layer uses the hyperbolic tangent activation:
 
-\[
+$$
 \tanh(x)
-\]
+$$
 
 ---
 
-# 10. Why Transposed Convolution?
+# 9. Why 3D Convolution?
 
-A normal convolution generally reduces or preserves spatial resolution depending on its parameters.
+A microstructure is inherently three-dimensional.
 
-The generator needs to perform the opposite operation.
+Using 2D convolutions independently on individual slices would lose correlations between neighboring slices.
 
-3D transposed convolution allows the network to progressively construct a high-resolution 3D structure from a low-dimensional latent representation.
+A 3D convolution operates on:
 
-Conceptually:
+$$
+x,y,z
+$$
 
-\[
-\text{Latent Vector}
-\rightarrow
-\text{Low Resolution Features}
-\rightarrow
-\text{High Resolution Features}
-\rightarrow
-\text{3D Microstructure}
-\]
+simultaneously.
 
-The convolutional filters learn spatial patterns such as:
+A simplified 3D convolution can be represented as:
 
-- local phase arrangements
-- interfaces
-- clusters
-- connectivity
-- larger-scale morphology
+$$
+Y(i,j,k)
+=
+\sum_{a,b,c}
+W(a,b,c)
+X(i+a,j+b,k+c)
+$$
+
+Therefore, the network can learn three-dimensional spatial features such as:
+
+- Phase clusters
+- Interfaces
+- Connectivity
+- Pore morphology
+- Three-dimensional anisotropy
+- Spatial correlations
 
 ---
 
-# 11. Discriminator
+# 10. Discriminator
 
-The discriminator receives either a real or generated microstructure.
+The discriminator receives a 3D microstructure:
 
-Its task is to distinguish:
+$$
+X \in \mathbb{R}^{128 \times 128 \times 64}
+$$
 
-\[
-X_{\mathrm{real}}
-\]
+and progressively reduces its spatial resolution:
 
-from
-
-\[
-X_{\mathrm{fake}}
-\]
-
-The discriminator performs the reverse spatial transformation.
-
-\[
-128\times128\times64
+$$
+128 \times 128 \times 64
 \rightarrow
-64\times64\times32
-\]
+64 \times 64 \times 32
+$$
 
-\[
-64\times64\times32
+$$
+64 \times 64 \times 32
 \rightarrow
-32\times32\times16
-\]
+32 \times 32 \times 16
+$$
 
-\[
-32\times32\times16
+$$
+32 \times 32 \times 16
 \rightarrow
-16\times16\times8
-\]
+16 \times 16 \times 8
+$$
 
-\[
-16\times16\times8
+$$
+16 \times 16 \times 8
 \rightarrow
-8\times8\times4
-\]
+8 \times 8 \times 4
+$$
 
-\[
-8\times8\times4
+$$
+8 \times 8 \times 4
 \rightarrow
-4\times4\times2
-\]
+4 \times 4 \times 2
+$$
 
-The resulting features are flattened and passed to a linear layer.
+The resulting features are flattened and passed through a linear layer.
 
 The discriminator outputs one scalar:
 
-\[
-D(X)\in\mathbb{R}
-\]
-
-A larger value indicates that the discriminator considers the sample more realistic under the hinge-loss formulation.
+$$
+D(X) \in \mathbb{R}
+$$
 
 ---
 
-# 12. Adversarial Learning
+# 11. Adversarial Learning
 
 The generator and discriminator are trained against each other.
 
-The discriminator attempts to distinguish real and generated structures.
+The discriminator attempts to distinguish:
 
-The generator attempts to generate structures that the discriminator considers realistic.
+$$
+X_{\mathrm{real}}
+$$
 
-This creates the adversarial process:
+from:
 
-\[
+$$
+X_{\mathrm{fake}}
+$$
+
+The generator attempts to produce structures that the discriminator considers realistic.
+
+Conceptually:
+
+$$
 G
 \leftrightarrow
 D
-\]
+$$
 
-The discriminator improves its representation of real microstructures while the generator improves its ability to reproduce the learned distribution.
+As training progresses:
+
+- $D$ learns features that distinguish real and generated structures.
+- $G$ learns features that make generated structures more similar to the training distribution.
 
 ---
 
-# 13. Hinge Loss
+# 12. Hinge Loss
 
 This implementation uses hinge adversarial loss.
 
-For the discriminator:
+The discriminator loss is:
 
-\[
+$$
 L_D
 =
-E_{x\sim p_{\mathrm{data}}}
-[
+\mathbb{E}_{x\sim p_{\mathrm{data}}}
+\left[
 \max(0,1-D(x))
-]
+\right]
 +
-E_{z\sim p(z)}
-[
+\mathbb{E}_{z\sim p(z)}
+\left[
 \max(0,1+D(G(z)))
-]
-\]
+\right]
+$$
 
-The generator minimizes:
+The generator loss is:
 
-\[
+$$
 L_G
 =
--E_{z\sim p(z)}
-[
+-\mathbb{E}_{z\sim p(z)}
+\left[
 D(G(z))
-]
-\]
+\right]
+$$
 
-There is no sigmoid activation at the discriminator output.
-
-This is intentional because the hinge formulation operates directly on the discriminator's raw output.
+The discriminator does not use a sigmoid output because the hinge formulation works directly with the raw discriminator score.
 
 ---
 
-# 14. Why Hinge Loss?
+# 13. Why Hinge Loss?
 
-Binary cross-entropy is commonly used for GANs, but hinge loss is also widely used for adversarial training.
+Hinge loss is commonly used in modern GAN architectures.
 
-Hinge loss provides useful gradients when the discriminator is confidently classifying samples.
+For real samples:
 
-For the real sample:
-
-\[
+$$
 L_{\mathrm{real}}
 =
 \max(0,1-D(x))
-\]
+$$
 
-For the fake sample:
+For generated samples:
 
-\[
+$$
 L_{\mathrm{fake}}
 =
 \max(0,1+D(G(z)))
-\]
+$$
 
-The discriminator is encouraged to satisfy approximately:
+The discriminator is encouraged toward:
 
-\[
+$$
 D(x)>1
-\]
+$$
 
-for real data and
+for real data and:
 
-\[
+$$
 D(G(z))<-1
-\]
+$$
 
 for generated data.
 
 The generator attempts to increase:
 
-\[
+$$
 D(G(z))
-\]
+$$
 
-so that generated structures appear realistic to the discriminator.
+so that generated structures are considered more realistic.
 
 ---
 
-# 15. Optimization
+# 14. Optimization
 
 The model uses the Adam optimizer.
 
-The update is based on estimates of the first and second moments of the gradient.
+For a parameter $\theta$ and gradient:
 
-For a parameter \(\theta\):
+$$
+g_t = \nabla_\theta L_t
+$$
 
-\[
-g_t=\nabla_\theta L_t
-\]
+Adam maintains first and second moment estimates:
 
-Adam maintains:
-
-\[
+$$
 m_t
 =
 \beta_1m_{t-1}
 +
 (1-\beta_1)g_t
-\]
+$$
 
-and
-
-\[
+$$
 v_t
 =
 \beta_2v_{t-1}
 +
 (1-\beta_2)g_t^2
-\]
+$$
 
 followed by bias correction and parameter updates.
 
 The implementation uses:
 
-\[
-\alpha=2\times10^{-4}
-\]
+$$
+\alpha = 2\times10^{-4}
+$$
 
-\[
-\beta_1=0.5
-\]
+$$
+\beta_1 = 0.5
+$$
 
-\[
-\beta_2=0.999
-\]
+$$
+\beta_2 = 0.999
+$$
 
-Adam is used because GAN training involves two simultaneously changing networks and can be difficult to optimize with ordinary gradient descent.
+Adam is used because GAN training involves two simultaneously changing neural networks and can be difficult to optimize using ordinary gradient descent.
 
 ---
 
-# 16. Data Processing
+# 15. Data Processing
 
-The original binary data is:
+The original data contains binary values:
 
-\[
+$$
 X\in\{0,1\}
-\]
+$$
 
-The generator uses a final tanh activation, which produces values in:
+The generator uses a final $\tanh$ activation, producing:
 
-\[
-[-1,1]
-\]
+$$
+X_{\mathrm{generated}}\in[-1,1]
+$$
 
-Therefore the real data is transformed using:
+Therefore, real data is transformed using:
 
-\[
-X'
-=
-2X-1
-\]
+$$
+X'=2X-1
+$$
 
 giving:
 
-\[
+$$
 0\rightarrow-1
-\]
+$$
 
-\[
+and:
+
+$$
 1\rightarrow+1
-\]
+$$
 
-This puts the real training data into the same numerical range as the generator output.
+This puts the real and generated data in the same numerical range.
 
 ---
 
-# 17. Dataset Loading
+# 16. Dataset Loading
 
 The HDF5 files contain multiple microstructures.
 
 Each HDF5 key corresponds to one 3D volume.
 
-The code creates an index:
-
-\[
-(\text{file path},\text{HDF5 key})
-\]
-
-instead of loading every microstructure into RAM.
-
-When a sample is requested, the corresponding HDF5 dataset is loaded.
-
-This is important because one microstructure contains:
-
-\[
-1,048,576
-\]
-
-voxels.
-
-Loading tens of thousands of full-resolution 3D structures simultaneously would require a very large amount of memory.
-
----
-
-# 18. Train/Validation Split
-
-The dataset is divided into:
-
-\[
-90\%
-\]
-
-training data and
-
-\[
-10\%
-\]
-
-validation data.
-
-For \(N\) samples:
-
-\[
-N_{\mathrm{train}}=0.9N
-\]
-
-\[
-N_{\mathrm{validation}}=0.1N
-\]
-
-The validation set is not used to update the network parameters.
-
-It provides an independent set of examples for monitoring the behavior of the trained model.
-
----
-
-# 19. Mini-Batch Training
-
-The 90/10 split should not be confused with batch size.
-
-For example, with 100 microstructures:
-
-\[
-90
-\]
-
-are used for training and
-
-\[
-10
-\]
-
-for validation.
-
-The training data is then divided into smaller mini-batches.
-
-For this project:
+Instead of loading every microstructure into RAM, the dataset stores an index:
 
 ```text
-BATCH_SIZE = 2
+(file path, HDF5 key)
