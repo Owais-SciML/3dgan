@@ -104,9 +104,7 @@ The effective thermal conductivity is not generally just a simple volume-weighte
 Instead:
 
 $$
-k_{\mathrm{eff}}
-=
-f(k_0,k_1,\text{microstructure})
+k_{\mathrm{eff}} = f(k_0, k_1, \text{microstructure})
 $$
 
 where the microstructure controls the paths through which heat can travel.
