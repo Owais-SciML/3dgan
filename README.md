@@ -494,3 +494,49 @@ Instead of loading every microstructure into RAM, the dataset stores an index:
 
 ```text
 (file path, HDF5 key)
+
+
+
+Future Plan
+
+Once the GAN generates new 3D microstructures, the generated microstructures will be passed to CH/FEM-based simulations to evaluate their effective physical properties.
+
+1. Thermal Conductivity
+
+The generated microstructure will be used to solve the heat-conduction problem:
+
+κ∇²u = 0
+
+→ Obtain effective thermal conductivity κ<sub>eff</sub>.
+
+2. Linear Elasticity
+
+The microstructure will be analyzed under mechanical loading using:
+
+∇⋅(C∇u) = 0
+
+→ Obtain effective elastic properties such as Young's modulus and stiffness.
+
+3. Permeability
+
+Fluid flow through the generated porous microstructure will be modeled using:
+
+μ∇²u − ∇p + b = 0
+
+∇⋅u − τp = 0
+
+→ Obtain effective permeability.
+
+4. Thermal Expansion
+
+Thermo-mechanical behavior will be evaluated using:
+
+∇⋅(C∇u − CαΔτ) = 0
+
+→ Obtain effective thermal expansion behavior.
+
+5. Overall Workflow
+
+Training Dataset → 3D GAN → Generated Microstructure → CH/FEM Simulation → Effective Material Properties
+
+The generated structures can then be compared with the original dataset based on both microstructural statistics and physical properties.
