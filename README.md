@@ -103,14 +103,7 @@ The effective thermal conductivity is not generally just a simple volume-weighte
 
 Instead:
 
-<div align="center">
-
-\[
-E_{\mathrm{eff}} = f(E_0,E_1,\text{microstructure})
-\]
-
-</div>
-
+E<sub>eff</sub> = f(E<sub>0</sub>, E<sub>1</sub>, microstructure)
 where the microstructure controls the paths through which heat can travel.
 
 Similarly, the effective elastic properties can be represented conceptually as:
